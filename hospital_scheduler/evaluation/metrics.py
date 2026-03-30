@@ -36,7 +36,7 @@ def compute_shift_distribution_score(shift_counts: Dict[str, int]) -> Tuple[floa
 
 
 def compute_doctor_coverage_score(
-    rows: List[Dict[str, Any]], n_days: int = 28
+    rows: List[Dict[str, Any]], n_days: int = 30
 ) -> Tuple[float, int, int]:
     """
     Calculates whether each day has doctor coverage for M, P, N.
@@ -52,7 +52,7 @@ def compute_doctor_coverage_score(
             slots = [shift]
         elif shift == 'MP':
             slots = ['M', 'P']
-        elif shift in ('J', 'AP'):
+        elif shift == 'J':
             slots = ['N']
         else:
             slots = []
@@ -73,7 +73,7 @@ def compute_episode_score(
     episode_stats: Dict[str, Any],
     rows: List[Dict[str, Any]],
     weights: Dict[str, float] | None = None,
-    n_days: int = 28,
+    n_days: int = 30,
 ) -> Tuple[float, Dict[str, Any]]:
     """
     Computes a composite quality score for an episode based on:
