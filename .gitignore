@@ -25,7 +25,6 @@ MANIFEST
 .ipynb
 # Virtual Environments
 venv/
-ENV/
 env.bak/
 venv.bak/
 .venv/
