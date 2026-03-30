@@ -1460,27 +1460,18 @@ class HospitalSchedulingEnv(gym.Env):
         week_start, week_end = week * WEEK_LEN, min((week + 1) * WEEK_LEN, self._days_in_episode)
         week_schedule = range(week_start, week_end)
 
-        weeks_without_rest = []
         hours_on_target = []
         weekly_hours_map = {}
         for emp in EMPLOYEES:
             emp_id = emp['id']
             contract = CONTRACT_TYPES[emp['contract']]
             weekly_hours_map[emp['name']] = float(self.hours_week[emp_id])
-            has_rest = any(self.schedule[d][emp_id] == 3 for d in week_schedule)
-            if not has_rest:
-                reward += PENALTY_WEEKLY['week_without_rest']
-                weeks_without_rest.append(emp['name'])
             if self.hours_week[emp_id] > contract['weekly_hours'] + contract['max_weekly_overtime']:
                 reward += PENALTY_WEEKLY['weekly_limit_exceeded']
                 info.setdefault('weekly_limit_exceeded', []).append(emp['name'])
             if self.hours_week[emp_id] >= contract['weekly_hours']:
                 reward += REWARD_WEEKLY['hours_on_target']
                 hours_on_target.append(emp['name'])
-        if not weeks_without_rest:
-            reward += REWARD_WEEKLY['weekly_rest_all_ok']
-        else:
-            info['weeks_without_rest'] = weeks_without_rest
         if hours_on_target:
             info['hours_on_target'] = hours_on_target
 
@@ -1507,11 +1498,8 @@ class HospitalSchedulingEnv(gym.Env):
             if len(night_counts) > 0 and np.std(night_counts) <= 1.0:
                 reward += REWARD_WEEKLY['night_balance']
 
-        if self.jolly_used_week.get(week, 0) > 2:
-            reward += PENALTY_WEEKLY['too_many_jolly']
-            info['too_many_jolly'] = self.jolly_used_week.get(week, 0)
-        else:
-            reward += REWARD_WEEKLY['week_clean'] * (1.0 if self.jolly_used_week.get(week, 0) == 0 else 0.0)
+        if self.jolly_used_week.get(week, 0):
+            info['jolly_used_this_week'] = self.jolly_used_week.get(week, 0)
 
         # Adaptive coverage deficit penalty
         # Formula LINEARE: coeff * (14 - n) dove n = somma check giornalieri settimana (0..14)

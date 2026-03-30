@@ -173,8 +173,6 @@ PENALTY_DAILY = {
 # ==============================================================================
 
 REWARD_WEEKLY = {
-    'week_clean':          1.0,
-    'weekly_rest_all_ok':  1.2,
     'hours_on_target':     0.8,
     'balanced_roles':      1.0,
     'night_balance':       0.9,
@@ -182,10 +180,8 @@ REWARD_WEEKLY = {
 
 PENALTY_WEEKLY = {
     'weekly_limit_exceeded':       -1.2,
-    'week_without_rest':           -1.5,
     'weekly_role_imbalance':       -0.7,
-    'too_many_jolly':              -1.0,
-    'adaptive_coverage_deficit':   -0.5,###   # Moltiplicatore: penalità lineare = coeff * (14 - n)
+    'adaptive_coverage_deficit':   -0.5,  # Moltiplicatore: penalità lineare = coeff * (14 - n)
 }
 
 # ==============================================================================
