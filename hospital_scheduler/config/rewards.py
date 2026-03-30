@@ -81,43 +81,44 @@ ROTATION_IMBALANCE_ALPHA = 0.15   # ← imposta il valore desiderato
 # ==============================================================================
 
 REWARD_DAILY = {
-    'riposo_rispettato':          1.1,
-    'copertura_n_minima':         1.1,
-    'shift_distribution':         1.1,
-    'ap_rispettato':              1.1,
-    'riposo_settimanale_rispettato':      1.1,
-    'slot_covered':               0.7,
-    'all_coverage_met':           1.4,
-    'valid_assignment':           0.5,
-    'underused_role_shift_bonus': 0.5,
-    'special_day_rotation_bonus': 0.6,
-    'night_rotation_bonus':       0.5,
-    'weekly_rotation_bonus':      0.4,
-    'mp_weekend_bonus':           0.7,
-    'jolly_weekend_bonus':        0.0,
-    'complete_daily_coverage':    1.2,
-    'dirigenza_daily_coverage':   0.8,
-    'dirigenza_night_covered':    1.0,
-    'infermieri_daily_coverage':  0.8,
-    'infermieri_night_covered':   1.0,
-    'preference_respected':       0.3,
-    'weekday_complete_coverage':  0.8,  # Reward quando sia dirigenza che comparto coperti (lun-ven)
-    'medico_infermiere_ratio':    0.5,
+    'riposo_rispettato':                 1.1,
+    'copertura_n_minima':                1.1,
+    'shift_distribution':                1.1,
+    'ap_rispettato':                     1.1,
+    'riposo_settimanale_rispettato':     1.1,
+    'slot_covered':                      0.7,
+    'all_coverage_met':                  1.4,
+    'valid_assignment':                  0.5,
+    'special_day_rotation_bonus':        0.6,
+    'mp_weekend_bonus':                  0.7,
+    'jolly_weekend_bonus':               0.5,  # Incentivize Jolly use on weekends
+    'complete_daily_coverage':           1.2,
+    'dirigenza_daily_coverage':          0.8,
+    'dirigenza_night_covered':           1.0,
+    'infermieri_daily_coverage':         0.8,
+    'infermieri_night_covered':          1.0,
+    'preference_respected':              0.3,
+    'weekday_complete_coverage':         0.8,  # Reward quando sia dirigenza che comparto coperti (lun-ven)
+    'medico_infermiere_ratio':           0.5,
+    # Symmetric fairness rewards (pairs with penalties)
+    'justified_rest':                    0.7,  # Rest is justified (ev. riposo necessario)
+    'shift_rotation_respected':          0.4,  # No same shift consecutively
+    'rest_days_balanced':                0.5,  # No consecutive rest days
+    'night_rotation_respected':          1.0,  # No consecutive nights
+    'role_shift_balanced':               0.4,  # Role-shift distribution balanced
+    'weekly_rotation_balanced':          0.3,  # Weekly rotation balanced
+    'weekend_work_respected':            0.6,  # No consecutive weekend work
     # New combined coverage check rewards (medici + infermieri minimal coverage)
-    'coverage_first_check_pass': 3.0,  # Strong reward when all shifts have at least 1 medico and 1 infermiere
-    'coverage_residual_pass': 1.5,     # Moderate reward when residual respects percentage limits
+    'coverage_first_check_pass':         3.0,  # Strong reward when all shifts have at least 1 medico and 1 infermiere
+    'coverage_residual_pass':            1.5,  # Moderate reward when residual respects percentage limits
     # Shift proportionality check rewards (infermieri vs medici ratio)
-    'shift_proportion_all_pass': 0.5,  # Reward when all shifts (M, P, N) respect proportionality constraints
-    'weekend_work_respected': 0.6,  # Reward when employee doesn't work consecutive weekends
+    'shift_proportion_all_pass':         0.5,  # Reward when all shifts (M, P, N) respect proportionality constraints
 }
 
 PENALTY_DAILY = {
-    'riposo_violato':                -1.0,  # (non usata in env, disponibile)
-    'copertura_n_minima_violata':    -3.0,  # (non usata in env, disponibile)
-    'shift_distribution_violata':    -1.5,  # (non usata in env, disponibile)
     'hard_override':                 -1.5,
     'ferie_violated':                -2.0,
-    'ap_violated':                   -1.0,
+    'ap_violated':                   -1.1,
     'rest_day_violated':             -1.0,
     'rest_11h_violated':             -1.2,
     'hours_exceeded':                -1.0,
@@ -126,14 +127,14 @@ PENALTY_DAILY = {
     'mp_activated':                  -0.3,
     'jolly_inevitable':              -0.5,
     'jolly_avoidable':               -0.9,
-    'unjustified_rest':              -0.7,###
+    'unjustified_rest':              -0.7,
     'consecutive_same_shift':        -0.4,
     'consecutive_rest':              -0.5,
-    'consecutive_night':             -1.0,###
+    'consecutive_night':             -1.0,
     'role_shift_imbalance':          -0.4,
     'special_day_concentration':     -0.5,
     'weekly_rotation_imbalance':     -0.3,
-    'weekend_consecutive_work':      -0.7,
+    'consecutive_weekend_work':      -1.0,
     'weekday_medico_distribution':   -0.4,
     'dirigenza_m_uncovered':         -0.9,
     'dirigenza_p_uncovered':         -0.9,
@@ -142,12 +143,11 @@ PENALTY_DAILY = {
     'infermieri_p_uncovered':        -0.8,
     'infermieri_n_uncovered':        -0.8,
     'preference_violated':           -0.3,
-    'consecutive_weekend_work':      -1,
     # New combined coverage check penalties (medici + infermieri minimal coverage)
-    'coverage_first_check_fail': -3.0,  # Strong penalty when minimal coverage (1 medico + 1 infermiere per shift) not met
-    'coverage_residual_fail': -0.8,     # Soft penalty when residual exceeds percentage limits
+    'coverage_first_check_fail':     -3.0,  # Strong penalty when minimal coverage (1 medico + 1 infermiere per shift) not met
+    'coverage_residual_fail':        -0.8,  # Soft penalty when residual exceeds percentage limits
     # Shift proportionality check penalties (infermieri vs medici ratio)
-    'shift_proportion_fail': -0.6,      # Soft penalty when at least one shift proportionality is not met
+    'shift_proportion_fail':         -0.6,  # Soft penalty when at least one shift proportionality is not met
 }
 
 # ==============================================================================

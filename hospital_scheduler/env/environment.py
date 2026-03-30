@@ -390,16 +390,21 @@ class HospitalSchedulingEnv(gym.Env):
             else:
                 reward_components['preference'] += REWARD_DAILY['valid_assignment']
 
-            if (
-                final == 3
-                and not self.rest_today[i]
-                and not self.ap_today[i]
-                and (emp_id, day) not in self.ferie_table
-                and prev_last_shift[emp_id] != 2
-            ):
-                reward_components['preference'] += PENALTY_DAILY['unjustified_rest']
-                info['soft_violations'].append(f"{emp['name']}: riposo non necessario")
-                self.total_soft_violations += 1
+            # Justified vs unjustified rest
+            if final == 3:  # Rest shift
+                if (
+                    not self.rest_today[i]
+                    and not self.ap_today[i]
+                    and (emp_id, day) not in self.ferie_table
+                    and prev_last_shift[emp_id] != 2
+                ):
+                    # Rest is not justified
+                    reward_components['preference'] += PENALTY_DAILY['unjustified_rest']
+                    info['soft_violations'].append(f"{emp['name']}: riposo non necessario")
+                    self.total_soft_violations += 1
+                else:
+                    # Rest is justified
+                    reward_components['preference'] += REWARD_DAILY['justified_rest']
 
             if (
                 self._is_weekend(day)
@@ -412,6 +417,28 @@ class HospitalSchedulingEnv(gym.Env):
                 else:
                     # Reward: employee respects the rule and doesn't work consecutive weekends
                     reward_components['fairness'] += REWARD_DAILY['weekend_work_respected']
+
+            # Shift rotation: reward different shifts, penalize consecutive same shifts
+            # Exclude night shifts (final == 2): they have their own specialized rule below
+            if day > 0 and final not in (2, 3, 6):
+                prev_shift = int(prev_last_shift[emp_id])
+                if prev_shift not in (3, 6):
+                    if prev_shift == final:
+                        # Consecutive same shift
+                        reward_components['fairness'] += PENALTY_DAILY['consecutive_same_shift']
+                    else:
+                        # Different shifts: rotation respected
+                        reward_components['fairness'] += REWARD_DAILY['shift_rotation_respected']
+            
+            # Night rotation: reward rotation of night shifts
+            if day > 0 and final == 2:
+                prev_shift = int(prev_last_shift[emp_id])
+                if prev_shift == 2:
+                    # Consecutive nights
+                    reward_components['fairness'] += PENALTY_DAILY['consecutive_night']
+                else:
+                    # Night after non-night: rotation respected
+                    reward_components['fairness'] += REWARD_DAILY['night_rotation_respected']
 
             reward_components['fairness'] += self._compute_soft_rotation_penalty(i, final, prev_last_shift, day)
             if day > 0 and final not in (3, 6):
