@@ -241,15 +241,13 @@ class HospitalSchedulingEnv(gym.Env):
             self.schedule[virtual_saturday][emp['id']] = 3  # Rest by default
         
         # Assign directors (medici) to M, P, N shifts with randomization
-        self.schedule[virtual_saturday][shuffled_dirigenza[0]] = 0  # M
-        self.schedule[virtual_saturday][shuffled_dirigenza[1]] = 1  # P
+        self.schedule[virtual_saturday][shuffled_dirigenza[0]] = 4  # M
         self.schedule[virtual_saturday][shuffled_dirigenza[2]] = 2  # N
         
         # Assign staff (infermieri) with MP optimization using shuffled indices
         self.schedule[virtual_saturday][shuffled_comparto[0]] = 4  # MP (covers both M and P)
-        self.schedule[virtual_saturday][shuffled_comparto[1]] = 4  # MP (covers both M and P)
-        self.schedule[virtual_saturday][shuffled_comparto[2]] = 2  # N
-        
+        self.schedule[virtual_saturday][shuffled_comparto[1]] = 2  # MP (covers both M and P)
+       
         # Initialize virtual Sunday (day -7) with optimal coverage for rotation constraint
         # Covers M, P, N with minimum staff: max 3 dirigenza (medici), max 3 comparto (infermieri)
         # Uses MP shift (shift 4) for infermieri to cover both M and P efficiently
@@ -261,14 +259,13 @@ class HospitalSchedulingEnv(gym.Env):
             self.schedule[virtual_sunday][emp['id']] = 3  # Rest by default
         
         # Assign directors (medici) to M, P, N shifts (1 per shift)
-        self.schedule[virtual_sunday][dirigenza_indices[0]] = 0  # M
-        self.schedule[virtual_sunday][dirigenza_indices[1]] = 1  # P
-        self.schedule[virtual_sunday][dirigenza_indices[2]] = 2  # N
-        
+        self.schedule[virtual_sunday][dirigenza_indices[0]] = 4  # M
+        self.schedule[virtual_sunday][dirigenza_indices[1]] = 2  # M
+
         # Assign staff (infermieri) with MP optimization
         self.schedule[virtual_sunday][comparto_indices[0]] = 4  # MP (covers both M and P)
-        self.schedule[virtual_sunday][comparto_indices[1]] = 4  # MP (covers both M and P)
-        self.schedule[virtual_sunday][comparto_indices[2]] = 2  # N
+        self.schedule[virtual_sunday][comparto_indices[0]] = 2  # MP (covers both M and P)
+
         
         self.hours_week = np.zeros(N_EMPLOYEES, dtype=np.float32)
         self.hours_month = np.zeros(N_EMPLOYEES, dtype=np.float32)
@@ -406,17 +403,7 @@ class HospitalSchedulingEnv(gym.Env):
                     # Rest is justified
                     reward_components['preference'] += REWARD_DAILY['justified_rest']
 
-            if (
-                self._is_weekend(day)
-                and final not in (3, 6)
-            ):
-                if self._worked_last_weekend(i, day):
-                    reward_components['fairness'] += PENALTY_DAILY['consecutive_weekend_work']
-                    info['soft_violations'].append(f"{emp['name']}: weekend consecutivo")
-                    self.total_soft_violations += 1
-                else:
-                    # Reward: employee respects the rule and doesn't work consecutive weekends
-                    reward_components['fairness'] += REWARD_DAILY['weekend_work_respected']
+
 
             # Shift rotation: reward different shifts, penalize consecutive same shifts
             # Exclude night shifts (final == 2): they have their own specialized rule below
@@ -451,17 +438,29 @@ class HospitalSchedulingEnv(gym.Env):
 
             # 1.4) Weekend rest enforcement: if worked Saturday, force Sunday rest for medici
             # This reduces consecutive weekend work and spreads coverage via Jolly
-            if emp['type'] == EMPLOYEE_TYPE_MEDICO and self._weekday_idx(day) == 6:  # Sunday
-                saturday_shift = self._get_saturday_shift_medico(i, day)
-                if saturday_shift is not None and saturday_shift not in (3, 6):  # Worked on Saturday (not Rest/AP)
-                    if final not in (3, 6):  # Trying to work on Sunday
-                        # Apply soft penalty for consecutive weekend work
-                        reward_components['fairness'] += PENALTY_DAILY['weekend_consecutive_work']
-                        info['soft_violations'].append(f"{emp['name']}: lavoro sia sabato che domenica")
-                        self.total_soft_violations += 1
-                        # Force Sunday rest (hard override for this optimization focus)
-                        final = 3
+            # if emp['type'] == EMPLOYEE_TYPE_MEDICO and self._weekday_idx(day) == 6:  # Sunday
+            #     saturday_shift = self._get_saturday_shift_medico(i, day)
+            #     if saturday_shift is not None and saturday_shift not in (3, 6):  # Worked on Saturday (not Rest/AP)
+            #         if final not in (3, 6):  # Trying to work on Sunday
+            #             # Apply soft penalty for consecutive weekend work
+            #             reward_components['fairness'] += PENALTY_DAILY['weekend_consecutive_work']
+            #             info['soft_violations'].append(f"{emp['name']}: lavoro sia sabato che domenica")
+            #             self.total_soft_violations += 1
+            #             # Force Sunday rest (hard override for this optimization focus)
+            #             final = 3
             
+            if (
+                self._is_weekend(day)
+                and final not in (3, 6)
+            ):
+                if self._worked_last_weekend(i, day):
+                    reward_components['fairness'] += PENALTY_DAILY['consecutive_weekend_work']
+                    info['soft_violations'].append(f"{emp['name']}: weekend consecutivo")
+                    self.total_soft_violations += 1
+                    final = 3  # Force rest to break consecutive weekend work
+                else:
+                    # Reward: employee respects the rule and doesn't work consecutive weekends
+                    reward_components['fairness'] += REWARD_DAILY['weekend_work_respected']
             final_shifts[emp_id] = final
 
         # 1.5) MP weekend reward: incentivize MP shifts on weekends (reduces staffing burden)
@@ -795,6 +794,17 @@ class HospitalSchedulingEnv(gym.Env):
         # Always allow rest
         if action == 3:
             return True
+
+        # NEW RULE: Block Sunday work if worked Saturday
+        current_weekday = self._weekday_idx(day)  # 0=Mon ... 6=Sun
+        if current_weekday == 6:  # Domenica
+            saturday = day - 1
+            if saturday >= 0:
+                emp_id = EMPLOYEES[emp_idx]['id']
+                prev_shift = self.schedule.get(saturday, {}).get(emp_id, -1)
+                # Se il sabato non era riposo (3) o assenza (6) e il turno richiesto non è riposo
+                if prev_shift not in (3, 6, -1):
+                    return False
         
         # Only mask: daily rest hours between shifts
         prev_shift = int(prev_shifts[emp_id])

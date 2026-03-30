@@ -246,7 +246,7 @@ def train_curriculum(use_masking: bool = True, pretrained_model_path: Optional[s
 
         checkpoint_dir = MODELS_DIR / "checkpoints" / f"level_{level}"
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
-        callbacks.append(PeriodicCheckpointCallback(save_freq=25000, save_path=str(checkpoint_dir)))
+        callbacks.append(PeriodicCheckpointCallback(save_freq=5000, save_path=str(checkpoint_dir)))
 
         if use_masking and MASKABLE_AVAILABLE and MaskableEvalCallback is not None:
             callbacks.append(

@@ -107,12 +107,12 @@ REWARD_DAILY = {
     'night_rotation_respected':          1.0,  # No consecutive nights
     'role_shift_balanced':               0.4,  # Role-shift distribution balanced
     'weekly_rotation_balanced':          0.3,  # Weekly rotation balanced
-    'weekend_work_respected':            0.6,  # No consecutive weekend work
+    'weekend_work_respected':            0.7,  # No consecutive weekend work
     # New combined coverage check rewards (medici + infermieri minimal coverage)
-    'coverage_first_check_pass':         3.0,  # Strong reward when all shifts have at least 1 medico and 1 infermiere
+    'coverage_first_check_pass':         3.5,  # Strong reward when all shifts have at least 1 medico and 1 infermiere
     'coverage_residual_pass':            1.5,  # Moderate reward when residual respects percentage limits
     # Shift proportionality check rewards (infermieri vs medici ratio)
-    'shift_proportion_all_pass':         0.5,  # Reward when all shifts (M, P, N) respect proportionality constraints
+    'shift_proportion_all_pass':         0.6,  # Reward when all shifts (M, P, N) respect proportionality constraints
 }
 
 PENALTY_DAILY = {
@@ -145,8 +145,8 @@ PENALTY_DAILY = {
     'infermieri_n_uncovered':        -0.8,
     'preference_violated':           -0.3,
     # New combined coverage check penalties (medici + infermieri minimal coverage)
-    'coverage_first_check_fail':     -3.0,  # Strong penalty when minimal coverage (1 medico + 1 infermiere per shift) not met
-    'coverage_residual_fail':        -0.8,  # Soft penalty when residual exceeds percentage limits
+    'coverage_first_check_fail':     -3.5,  # Strong penalty when minimal coverage (1 medico + 1 infermiere per shift) not met
+    'coverage_residual_fail':        -1.4,  # Soft penalty when residual exceeds percentage limits
     # Shift proportionality check penalties (infermieri vs medici ratio)
     'shift_proportion_fail':         -0.6,  # Soft penalty when at least one shift proportionality is not met
 }
