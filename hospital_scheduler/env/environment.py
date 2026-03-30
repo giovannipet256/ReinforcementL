@@ -1592,13 +1592,21 @@ class HospitalSchedulingEnv(gym.Env):
                 continue
             hours_list = [r['ore_totali'] for r in rows]
             role_mean = float(np.mean(hours_list))
+            
+            # Track which employees are out of tolerance for this role
+            imbalanced_employees = []
             for r in rows:
                 delta = abs(r['ore_totali'] - role_mean)
                 if delta > MONTHLY_HOURS_TOLERANCE:
                     all_balanced = False
-                    reward += PENALTY_MONTHLY['monthly_hours_imbalance']
+                    imbalanced_employees.append((r['dipendente'], r['ore_totali'], role_mean, delta))
+            
+            # Apply penalty ONCE per role if any employee is unbalanced
+            if imbalanced_employees:
+                reward += PENALTY_MONTHLY['monthly_hours_imbalance']
+                for dipendente, ore, media, delta in imbalanced_employees:
                     info['monthly_hours_imbalance'].append(
-                        f"{r['dipendente']}: {r['ore_totali']:.0f}h (media {role_mean:.0f}h, delta {delta:.0f}h)"
+                        f"{dipendente}: {ore:.0f}h (media {media:.0f}h, delta {delta:.0f}h)"
                     )
         if all_balanced:
             reward += REWARD_MONTHLY['monthly_hours_balanced']
