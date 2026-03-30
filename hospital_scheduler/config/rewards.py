@@ -108,6 +108,7 @@ REWARD_DAILY = {
     'coverage_residual_pass': 1.5,     # Moderate reward when residual respects percentage limits
     # Shift proportionality check rewards (infermieri vs medici ratio)
     'shift_proportion_all_pass': 0.5,  # Reward when all shifts (M, P, N) respect proportionality constraints
+    'consecutive_weekend_rest_recovery': 1.3,  # Reward quando dirigente riposa dopo aver lavorato il weekend precedente
 }
 
 PENALTY_DAILY = {
@@ -142,6 +143,7 @@ PENALTY_DAILY = {
     'infermieri_n_uncovered':        -0.8,
     'preference_violated':           -0.3,
     'consecutive_weekend_work':      -0.8,
+    'consecutive_weekend_work_multi': -1.2,  # Penalità quando dirigente lavora 2+ weekend di fila
     # New combined coverage check penalties (medici + infermieri minimal coverage)
     'coverage_first_check_fail': -3.0,  # Strong penalty when minimal coverage (1 medico + 1 infermiere per shift) not met
     'coverage_residual_fail': -0.8,     # Soft penalty when residual exceeds percentage limits
