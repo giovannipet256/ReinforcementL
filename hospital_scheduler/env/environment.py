@@ -171,39 +171,6 @@ class HospitalSchedulingEnv(gym.Env):
 
         return (shift_sat not in (3, 6, -1)) or (shift_sun not in (3, 6, -1))
 
-    def _check_consecutive_weekends(self, emp_idx: int, current_day: int, current_shift: int) -> tuple:
-        """
-        Check if employee worked last weekend and is working this Saturday (consecutive weekends).
-        Called on Saturday (weekday_idx == 5).
-        Returns: (worked_prev_weekend: bool, working_this_saturday: bool)
-        
-        Example:
-        - If worked last Sat/Sun AND working this Saturday → (True, True) → penalty
-        - If worked last Sat/Sun AND resting this Saturday → (True, False) → reward
-        - If didn't work last weekend → (False, False or True) → neutral/no bonus
-        """
-        current_weekday = self._weekday_idx(current_day)
-        
-        # Only check on Saturday (weekday 5)
-        if current_weekday != 5:
-            return False, False
-        
-        emp_id = EMPLOYEES[emp_idx]['id']
-        
-        # Get last weekend (Saturday and Sunday of previous week)
-        last_sat = current_day - 7
-        last_sun = current_day - 6
-        
-        # Check if employee worked last weekend
-        shift_last_sat = self.schedule.get(last_sat, {}).get(emp_id, -1)
-        shift_last_sun = self.schedule.get(last_sun, {}).get(emp_id, -1)
-        worked_last_weekend = (shift_last_sat not in (3, 6, -1)) or (shift_last_sun not in (3, 6, -1))
-        
-        # Check if working this Saturday (current shift parameter)
-        working_this_saturday = current_shift not in (3, 6)  # Rest (3) and AP (6) are not work
-        
-        return worked_last_weekend, working_this_saturday
-
     def _get_saturday_shift_medico(self, emp_idx: int, current_day: int) -> int | None:
         """
         If current day is Sunday, return what shift the employee had on Saturday.
@@ -711,24 +678,6 @@ class HospitalSchedulingEnv(gym.Env):
         # 5) Commit shifts
         self.final_shifts_today = dict(final_shifts)
         self._commit_day(final_shifts, prev_last_shift, day)
-
-        # 5.5) Consecutive weekends check for dirigenza (medici)
-        # Check on Saturday: if worked last weekend, reward for rest this Saturday, penalty for working again
-        if self._weekday_idx(day) == 5:  # Saturday
-            for i, emp in enumerate(EMPLOYEES):
-                if emp['type'] == EMPLOYEE_TYPE_MEDICO:
-                    current_shift = final_shifts.get(emp['id'], 3)
-                    worked_prev_weekend, working_this_saturday = self._check_consecutive_weekends(i, day, current_shift)
-                    
-                    if worked_prev_weekend:
-                        if working_this_saturday:
-                            # Worked last weekend AND working this Saturday → penalty
-                            reward_components['fairness'] += PENALTY_DAILY['consecutive_weekend_work_multi']
-                            info['hard_overrides'].append(f"Consecutive weekend work penalty: {emp['name']}")
-                        else:
-                            # Worked last weekend BUT resting this Saturday → reward (recovery)
-                            reward_components['fairness'] += REWARD_DAILY['consecutive_weekend_rest_recovery']
-                            info['hard_overrides'].append(f"Consecutive weekend rest recovery reward: {emp['name']}")
 
         # 6) Weekly/monthly bonuses/penalties
         if (day + 1) % WEEK_LEN == 0:
