@@ -25,14 +25,12 @@ MANIFEST
 .ipynb
 # Virtual Environments
 venv/
-env/
 ENV/
 env.bak/
 venv.bak/
 .venv/
 
 # Training artifacts and models
-Training/
 *.pkl
 *.pickle
 *.h5
