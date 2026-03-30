@@ -116,6 +116,7 @@ REWARD_DAILY = {
 }
 
 PENALTY_DAILY = {
+    'copertura_n_minima_violata':       -1.1,
     'hard_override':                 -1.5,
     'ferie_violated':                -2.0,
     'ap_violated':                   -1.1,
