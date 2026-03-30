@@ -1,0 +1,8 @@
+gymnasium>=0.29
+numpy>=1.24
+torch>=2.0
+stable-baselines3>=2.0
+sb3-contrib>=2.0
+pandas>=2.0
+streamlit>=1.30
+openpyxl>=3.0

@@ -1,0 +1,144 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.ipynb
+# Virtual Environments
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Training artifacts and models
+Training/
+*.pkl
+*.pickle
+*.h5
+*.pb
+*.ckpt
+*.pth
+*.weights
+*.pt
+*.safetensors
+model/
+models/
+checkpoints/
+
+# Scaler files
+scaler/
+
+# Data files
+data/
+*.csv
+*.xlsx
+*.xls
+*.xlsm
+settembre
+*.tsv
+*.parquet
+*.feather
+*.hdf5
+*.h5
+# Jupyter Notebooks
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+*.ipynb
+# Logs
+Logs/
+eval_logs/
+*.log
+logs/
+tensorboard/
+runs/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# DVC
+.dvc/
+*.dvc
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# OS specific
+Thumbs.db
+.DS_Store
+*.bak
+
+# Directories 
+2_Documenti/
+Arelle/
+
+# XML files
+factTable.xml
+pre.xml
+
+# Altro
+vector_db
+docs
+cache
+dash_cache
+*.pdf
+*.zip
+*.tar.gz
+
+#cartelle
+models/
+logs/
+logs_1/
+logs_2/
+models_1/
+models_2/
