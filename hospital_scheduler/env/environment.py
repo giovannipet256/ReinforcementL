@@ -404,11 +404,14 @@ class HospitalSchedulingEnv(gym.Env):
             if (
                 self._is_weekend(day)
                 and final not in (3, 6)
-                and self._worked_last_weekend(i, day)
             ):
-                reward_components['fairness'] += PENALTY_DAILY['consecutive_weekend_work']
-                info['soft_violations'].append(f"{emp['name']}: weekend consecutivo")
-                self.total_soft_violations += 1
+                if self._worked_last_weekend(i, day):
+                    reward_components['fairness'] += PENALTY_DAILY['consecutive_weekend_work']
+                    info['soft_violations'].append(f"{emp['name']}: weekend consecutivo")
+                    self.total_soft_violations += 1
+                else:
+                    # Reward: employee respects the rule and doesn't work consecutive weekends
+                    reward_components['fairness'] += REWARD_DAILY['weekend_work_respected']
 
             reward_components['fairness'] += self._compute_soft_rotation_penalty(i, final, prev_last_shift, day)
             if day > 0 and final not in (3, 6):
