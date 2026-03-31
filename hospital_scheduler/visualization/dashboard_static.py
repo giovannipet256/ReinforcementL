@@ -46,7 +46,7 @@ SHIFT_LABELS = {
     'N': 'Notte',
     'MP': 'Mattina-Pom',
     'R': 'Riposo',
-    'AP': 'Assenza',
+    'AP': 'Aggiornamento Professionale',
     'J': 'Jolly',
 }
 
@@ -154,7 +154,7 @@ def build_preference_table(pref_df: pd.DataFrame) -> pd.DataFrame:
 # ============================================================
 
 def main():
-    st.title("🏥 Hospital Scheduler Dashboard")
+    st.title("Hospital Scheduler Dashboard")
     st.markdown("Visualizza il calendario delle assegnazioni e analizza i KPI")
     
     # Sidebar: File upload
@@ -210,19 +210,19 @@ def main():
         
         # Summary metrics
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("👥 Dipendenti", len(schedule_df))
-        col2.metric("📅 Giorni", len(date_cols) if date_cols else 0)
-        col3.metric("🔄 Turni unici", len(SHIFT_LABELS))
+        col1.metric("Dipendenti", len(schedule_df))
+        col2.metric("Giorni", len(date_cols) if date_cols else 0)
+        col3.metric("Turni unici", len(SHIFT_LABELS))
         
         # Count total working days
         schedule_long = reshape_schedule_to_long(schedule_df)
         total_shifts = len(schedule_long[~schedule_long['Turno'].isin(['R', 'AP', ''])])
-        col4.metric("📌 Assegnazioni", total_shifts)
+        col4.metric("Assegnazioni", total_shifts)
         
         # ============================================================
         # CALENDAR SECTION
         # ============================================================
-        st.subheader("📋 Calendario Assegnazioni")
+        st.subheader("Calendario Assegnazioni")
         
         # Create styled calendar DataFrame
         calendar_display = schedule_df.copy()
@@ -232,7 +232,7 @@ def main():
         st.dataframe(styled_calendar, use_container_width=True, height=400)
         
         # Shift legend
-        with st.expander("🎨 Legenda colori", expanded=False):
+        with st.expander("Legenda colori", expanded=False):
             cols = st.columns(4)
             for i, (shift_code, shift_label) in enumerate(SHIFT_LABELS.items()):
                 col = cols[i % 4]
@@ -248,7 +248,7 @@ def main():
         # ============================================================
         # KPI SECTION
         # ============================================================
-        st.subheader("📊 KPI per Dipendente")
+        st.subheader("KPI per Dipendente")
         
         kpi_table = build_kpi_table(schedule_df, kpi_df)
         
@@ -261,7 +261,7 @@ def main():
             with col2:
                 csv_kpi = kpi_table.to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    label="📥 CSV",
+                    label="CSV",
                     data=csv_kpi,
                     file_name=f"kpi_{uploaded_file.name.split('.')[0]}.csv",
                     mime="text/csv"
@@ -273,13 +273,13 @@ def main():
         # PREFERENCES SECTION
         # ============================================================
         if pref_df is not None and not pref_df.empty:
-            st.subheader("❤️ Preferenze Dipendenti")
+            st.subheader("Preferenze Dipendenti")
             st.dataframe(pref_df, use_container_width=True, hide_index=True)
         
         # ============================================================
         # SHIFT STATISTICS
         # ============================================================
-        st.subheader("📈 Statistiche Turni")
+        st.subheader("Statistiche Turni")
         
         shift_counts = aggregate_shift_counts(schedule_df)
         
@@ -321,14 +321,14 @@ def main():
         # ============================================================
         # EXPORT SECTION
         # ============================================================
-        st.subheader("💾 Esporta Dati")
+        st.subheader("Esporta Dati")
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
             csv_schedule = schedule_df.to_csv().encode('utf-8')
             st.download_button(
-                label="📥 Schedule (CSV)",
+                label="Schedule (CSV)",
                 data=csv_schedule,
                 file_name=f"schedule_{uploaded_file.name.split('.')[0]}.csv",
                 mime="text/csv"
@@ -338,7 +338,7 @@ def main():
             if not kpi_table.empty:
                 csv_kpi = kpi_table.to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    label="📥 KPI (CSV)",
+                    label="KPI (CSV)",
                     data=csv_kpi,
                     file_name=f"kpi_{uploaded_file.name.split('.')[0]}.csv",
                     mime="text/csv"
@@ -348,7 +348,7 @@ def main():
             if pref_df is not None and not pref_df.empty:
                 csv_pref = pref_df.to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    label="📥 Preferenze (CSV)",
+                    label="Preferenze (CSV)",
                     data=csv_pref,
                     file_name=f"preferences_{uploaded_file.name.split('.')[0]}.csv",
                     mime="text/csv"
