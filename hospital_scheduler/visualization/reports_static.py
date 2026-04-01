@@ -37,8 +37,50 @@ def load_schedule_from_excel(file_path: str) -> pd.DataFrame:
     Load the schedule from Excel file (first sheet 'Planner').
     Returns DataFrame with Dipendente as index and dates as columns.
     """
-    df = pd.read_excel(file_path, sheet_name='Planner')
-    df.set_index('Dipendente', inplace=True)
+    # Read as strings to avoid unexpected dtype conversions
+    df = pd.read_excel(file_path, sheet_name='Planner', dtype=str)
+    df = df.fillna("")
+
+    # Normalize column names
+    df.columns = [str(c).strip() for c in df.columns]
+
+    # Try to find the column that contains employee names (prefer 'Dipendente')
+    idx_col = None
+    if 'Dipendente' in df.columns:
+        idx_col = 'Dipendente'
+    else:
+        # common alternatives
+        for alt in ['Nome', 'Nome Dipendente', 'Dipendenti', 'Employee', 'Name']:
+            if alt in df.columns:
+                idx_col = alt
+                break
+
+    # If still not found, check if first column is unnamed (e.g., index column)
+    if idx_col is None and len(df.columns) > 0:
+        first = df.columns[0]
+        if first.lower().startswith('unnamed') or df[first].astype(str).str.contains(r'Dr\.|Inf\.', na=False).any():
+            idx_col = first
+
+    # Fallback: choose the column with many non-empty strings that look like names
+    if idx_col is None:
+        for col in df.columns:
+            non_empty = df[col].astype(str).str.strip().replace('', pd.NA).dropna()
+            if len(non_empty) > 0:
+                sample = non_empty.iloc[0]
+                if isinstance(sample, str) and (sample.startswith('Dr.') or sample.startswith('Inf.') or ' ' in sample):
+                    idx_col = col
+                    break
+
+    if idx_col is not None:
+        df.set_index(idx_col, inplace=True)
+    else:
+        # No obvious index column found — return dataframe as-is so caller can handle it
+        # This avoids raising a KeyError and gives a clearer downstream error if necessary
+        return df
+
+    # Strip whitespace from index values
+    df.index = df.index.to_series().astype(str).str.strip()
+
     return df
 
 
@@ -126,7 +168,8 @@ def calculate_kpis_from_schedule(schedule_df: pd.DataFrame) -> pd.DataFrame:
         # Count shifts
         count_M = (shifts == 'M').sum()
         count_P = (shifts == 'P').sum()
-        count_N = (shifts == 'N').sum()
+        # Accept both 'N' and 'NS' as night codes (some files may use 'NS')
+        count_N = shifts.isin(['N', 'NS']).sum()
         count_MP = (shifts == 'MP').sum()
         count_R = (shifts == 'R').sum()
         count_AP = (shifts == 'AP').sum()
