@@ -56,6 +56,9 @@ SHIFT_LABELS = {
 METRIC_LABEL_DEFAULT_PX = 20  # default metric label font in px
 METRIC_VALUE_DEFAULT_PX = 42  # ~2.6rem
 LEGEND_FONT_DEFAULT_PX = 16   # ~1rem
+PLANNER_FONT_DEFAULT_PX = 20  # default planner cell font in px
+# runtime-adjustable planner font (will be set from sidebar slider in main)
+PLANNER_FONT_SIZE = f"{PLANNER_FONT_DEFAULT_PX}px"
 
 # ============================================================
 # Utility Functions
@@ -82,15 +85,15 @@ def style_calendar_cell(val: str) -> str:
 
     if sval == '' or sval.lower() in ('none', 'nan'):
         # render truly empty cells as white/blank
-        return 'background-color: #ffffff; color: #000;'
+        return f'background-color: #ffffff; color: #000; text-align: center; font-size: {PLANNER_FONT_SIZE};'
 
     shift_key = sval
     if shift_key in SHIFT_COLORS_MAP:
         colors = SHIFT_COLORS_MAP[shift_key]
         bold = 'font-weight: bold;' if shift_key in ['MP', 'J'] else ''
-        return f"background-color: {colors['bg']}; color: {colors['text']}; text-align: center; {bold}"
+        return f"background-color: {colors['bg']}; color: {colors['text']}; text-align: center; font-size: {PLANNER_FONT_SIZE}; {bold}"
     
-    return 'background-color: #f0f0f0; color: #999;'
+    return f'background-color: #f0f0f0; color: #999; text-align: center; font-size: {PLANNER_FONT_SIZE};'
 
 
 def aggregate_shift_counts(schedule_df: pd.DataFrame) -> Dict[str, Dict[str, int]]:
@@ -266,6 +269,12 @@ def main():
         value_px = st.sidebar.slider("Metric value font (px)", 12, 96, METRIC_VALUE_DEFAULT_PX)
         legend_px = st.sidebar.slider("Legenda font (px)", 10, 36, LEGEND_FONT_DEFAULT_PX)
 
+        # Planner cell font size (affects shift labels like 'M', 'P', 'NS' in the main planner)
+        planner_px = st.sidebar.slider("Planner cell font (px)", 8, 48, PLANNER_FONT_DEFAULT_PX)
+        # update global variable used by style_calendar_cell
+        global PLANNER_FONT_SIZE
+        PLANNER_FONT_SIZE = f"{planner_px}px"
+
         label_size = f"{label_px}px"
         value_size = f"{value_px}px"
         legend_size = f"{legend_px}px"
@@ -385,7 +394,7 @@ def main():
 
         render_metric(col1, "Dipendenti", num_dipendenti-1, label_size, value_size)
         render_metric(col2, "Ore totali pianificate", ore_totali, label_size, value_size)
-        render_metric(col3, "Notte e Smonto assegnati", notti_totali, label_size, value_size)
+        render_metric(col3, "N/S assegnati", notti_totali, label_size, value_size)
         render_metric(col4, "Notte Dipartimentale", jolly_count, label_size, value_size)
         render_metric(col5, "Violazioni 11h", violaz_11h_count, label_size, value_size)
         #col6.metric("Warning Riposo sett.", riposo_sett_warning)
@@ -410,8 +419,19 @@ def main():
             for idx in calendar_display.index
         ]
         
-        # Style the calendar
-        styled_calendar = calendar_display.style.map(style_calendar_cell)
+        # Style the calendar (cells based on shift type)
+        styled_calendar = (
+            calendar_display.style
+            .map(style_calendar_cell)
+            # Make index (resource names) bold
+            .applymap(lambda x: 'font-weight: bold;', subset=pd.IndexSlice[:, calendar_display.columns[0]:calendar_display.columns[0]])
+        )
+        
+        # Apply bold to all headers via CSS
+        styled_calendar = styled_calendar.set_table_styles([
+            {'selector': 'th', 'props': [('font-weight', 'bold !important')]},
+        ], overwrite=False)
+        
         # Compute number of rows that actually contain data (exclude fully-empty rows)
         try:
             displayed_rows = len(calendar_display.dropna(how='all'))
@@ -471,7 +491,18 @@ def main():
         kpi_table = build_kpi_table(schedule_df, kpi_df)
         
         if not kpi_table.empty:
-            # Display KPI table
+            # Inject CSS for blue header styling on next dataframe
+            st.markdown("""
+                <style>
+                /* Style for KPI table header */
+                [data-testid="stDataFrame"] [data-testid*="stDataFrame"] thead th,
+                [data-testid="stDataFrame"] thead th {
+                    background-color: #1e3a8a !important;
+                    color: white !important;
+                    font-weight: bold !important;
+                }
+                </style>
+            """, unsafe_allow_html=True)
             kpi_height = min(900, 80 + 35 * len(kpi_table))
             st.dataframe(kpi_table, use_container_width=True, hide_index=True, height=kpi_height)
         else:
@@ -482,6 +513,18 @@ def main():
         # ============================================================
         if pref_df is not None and not pref_df.empty:
             st.subheader("Preferenze Dipendenti")
+            # Inject CSS for blue header styling on next dataframe
+            st.markdown("""
+                <style>
+                /* Style for Preferences table header */
+                [data-testid="stDataFrame"] [data-testid*="stDataFrame"] thead th,
+                [data-testid="stDataFrame"] thead th {
+                    background-color: #1e3a8a !important;
+                    color: white !important;
+                    font-weight: bold !important;
+                }
+                </style>
+            """, unsafe_allow_html=True)
             pref_height = min(900, 80 + 35 * len(pref_df))
             st.dataframe(pref_df, use_container_width=True, hide_index=True, height=pref_height)
         
