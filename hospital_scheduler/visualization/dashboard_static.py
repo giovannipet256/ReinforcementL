@@ -491,20 +491,36 @@ def main():
         kpi_table = build_kpi_table(schedule_df, kpi_df)
         
         if not kpi_table.empty:
-            # Inject CSS for blue header styling on next dataframe
-            st.markdown("""
-                <style>
-                /* Style for KPI table header */
-                [data-testid="stDataFrame"] [data-testid*="stDataFrame"] thead th,
-                [data-testid="stDataFrame"] thead th {
-                    background-color: #1e3a8a !important;
-                    color: white !important;
-                    font-weight: bold !important;
-                }
-                </style>
-            """, unsafe_allow_html=True)
-            kpi_height = min(900, 80 + 35 * len(kpi_table))
-            st.dataframe(kpi_table, use_container_width=True, hide_index=True, height=kpi_height)
+            # Render KPI table as styled HTML
+            kpi_html = kpi_table.to_html(escape=False, index=False)
+            # Wrap with style tags
+            kpi_html_display = f"""
+<style>
+.kpi-table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-family: sans-serif;
+}}
+.kpi-table th {{
+    background-color: #1e3a8a;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}}
+.kpi-table td {{
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+}}
+.kpi-table tbody tr:nth-child(even) {{
+    background-color: #f9f9f9;
+}}
+</style>
+{kpi_html.replace('<table', '<table class="kpi-table"')}
+            """
+            st.markdown(kpi_html_display, unsafe_allow_html=True)
         else:
             st.warning("Nessun KPI disponibile")
         
@@ -513,20 +529,36 @@ def main():
         # ============================================================
         if pref_df is not None and not pref_df.empty:
             st.subheader("Preferenze Dipendenti")
-            # Inject CSS for blue header styling on next dataframe
-            st.markdown("""
-                <style>
-                /* Style for Preferences table header */
-                [data-testid="stDataFrame"] [data-testid*="stDataFrame"] thead th,
-                [data-testid="stDataFrame"] thead th {
-                    background-color: #1e3a8a !important;
-                    color: white !important;
-                    font-weight: bold !important;
-                }
-                </style>
-            """, unsafe_allow_html=True)
-            pref_height = min(900, 80 + 35 * len(pref_df))
-            st.dataframe(pref_df, use_container_width=True, hide_index=True, height=pref_height)
+            # Render Preferences table as styled HTML
+            pref_html = pref_df.to_html(escape=False, index=False)
+            # Wrap with style tags
+            pref_html_display = f"""
+<style>
+.pref-table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    font-family: sans-serif;
+}}
+.pref-table th {{
+    background-color: #1e3a8a;
+    color: white;
+    font-weight: bold;
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}}
+.pref-table td {{
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+}}
+.pref-table tbody tr:nth-child(even) {{
+    background-color: #f9f9f9;
+}}
+</style>
+{pref_html.replace('<table', '<table class="pref-table"')}
+            """
+            st.markdown(pref_html_display, unsafe_allow_html=True)
         
         # ============================================================
         # SHIFT STATISTICS
