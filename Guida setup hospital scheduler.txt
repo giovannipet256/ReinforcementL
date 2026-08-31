@@ -1,0 +1,9 @@
+Setup
+1. Attivazione environment: .venv\Scripts\activate.bat
+2. Installazione dipendenze: python -m pip install -r requirements.txt   
+Operazioni
+1. Dashboard con visione del calendario e kpi: .\hospital_scheduler\.venv\Scripts\python.exe -m streamlit run hospital_scheduler\visualization\dashboard.py 
+2. Avvio tensorboard per gestione log: .\hospital_scheduler\.venv\Scripts\python.exe launch_tensorboard.py
+3. Per avviare un nuovo ciclo di allenamento: .\hospital_scheduler\.venv\Scripts\python.exe -m hospital_scheduler.scripts.train
+4. Per riprendere l'allenamento da un modello/checkpoint specifico: .\hospital_scheduler\.venv\Scripts\python.exe -m hospital_scheduler.scripts.train --model models\ppo_hospital_final.zip
+5. Per ripartire da un livello di curriculum learning specifico: .\hospital_scheduler\.venv\Scripts\python.exe -m hospital_scheduler.scripts.train --model models\checkpoints\level_3\checkpoint_75000.zip --start-level n
