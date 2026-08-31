@@ -6,3 +6,4 @@ sb3-contrib>=2.0
 pandas>=2.0
 streamlit>=1.30
 openpyxl>=3.0
+tensorboard
