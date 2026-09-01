@@ -22,4 +22,5 @@ setup(
             "hs-eval=hospital_scheduler.scripts.eval:main",
         ]
     },
+#ciao
 )
