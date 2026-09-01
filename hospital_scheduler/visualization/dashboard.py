@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import calendar as _cal
+import sys
 from io import BytesIO
 from pathlib import Path
 
@@ -9,6 +10,10 @@ import streamlit as st
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment
 from openpyxl.utils import get_column_letter
+
+# Streamlit executes this file with its folder on sys.path. Add the project
+# root so absolute imports like hospital_scheduler.config work from any cwd.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from hospital_scheduler.config.settings import (
     EMPLOYEES, CONTRACT_TYPES, SHIFT_HOURS, SHIFT_NAME_TO_ID,
