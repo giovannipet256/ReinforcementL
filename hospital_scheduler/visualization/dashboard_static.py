@@ -424,7 +424,7 @@ def main():
             calendar_display.style
             .map(style_calendar_cell)
             # Make index (resource names) bold
-            .applymap(lambda x: 'font-weight: bold;', subset=pd.IndexSlice[:, calendar_display.columns[0]:calendar_display.columns[0]])
+            .map(lambda x: 'font-weight: bold;', subset=pd.IndexSlice[:, calendar_display.columns[0]:calendar_display.columns[0]])
         )
         
         # Apply bold to all headers via CSS
